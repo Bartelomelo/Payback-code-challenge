@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import pl.bartelomelo.paybackcodingchallenge.data.remote.ImagesApi
+import pl.bartelomelo.paybackcodingchallenge.data.remote.repository.ImageRepository
 import pl.bartelomelo.paybackcodingchallenge.util.Constants.BASE_URL
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -22,4 +23,10 @@ object AppModule {
             .build()
             .create(ImagesApi::class.java)
     }
+
+    @Singleton
+    @Provides
+    fun provideImageRepository(
+        api: ImagesApi
+    ) = ImageRepository(api)
 }
