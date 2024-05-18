@@ -10,9 +10,9 @@ import javax.inject.Inject
 class ImageRepository @Inject constructor(
     private val api: ImagesApi
 ) {
-    suspend fun getImagesList(query: String): Resource<SearchResponse> {
+    suspend fun getImagesList(query: String, page: Int): Resource<SearchResponse> {
         val response = try {
-            api.getImagesList(query)
+            api.getImagesList(query, page)
         } catch (e: Exception) {
             return Resource.Error(e.message.toString())
         }
