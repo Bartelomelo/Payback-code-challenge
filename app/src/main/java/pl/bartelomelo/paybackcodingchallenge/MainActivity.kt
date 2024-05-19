@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,10 +27,11 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = "image_list_screen") {
                         composable("image_list_screen") {
                             //composable function here.
-                            ImageListScreen()
+                            ImageListScreen(navController = navController)
                         }
                         composable("image_detail_screen") {
                             //about image composable here.
+                            Text(text = "item detail screen")
                         }
                     }
                 }

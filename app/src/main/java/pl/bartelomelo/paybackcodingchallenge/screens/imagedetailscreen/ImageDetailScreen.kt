@@ -1,0 +1,2 @@
+package pl.bartelomelo.paybackcodingchallenge.screens.imagedetailscreen
+

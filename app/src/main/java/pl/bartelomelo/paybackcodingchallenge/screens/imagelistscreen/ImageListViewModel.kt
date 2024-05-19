@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.data.remote.repository.ImageRepository
 import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.SearchResponse
@@ -17,10 +16,10 @@ import javax.inject.Inject
 class ImageListViewModel @Inject constructor(
     private val repository: ImageRepository
 ): ViewModel() {
-    val imageList = mutableStateOf(SearchResponse(hits = listOf(), total = 0, totalHits = 0))
+    val imageList = mutableStateOf(SearchResponse(hits = listOf(), total = null, totalHits = 0))
     private var page = 1
     private val _myState = MutableStateFlow(false)
-    val myState: StateFlow<Boolean> = _myState
+    var searchBarActive = mutableStateOf(false)
     var query = mutableStateOf("flowers")
     var searchedQuery = mutableStateOf("flowers")
 

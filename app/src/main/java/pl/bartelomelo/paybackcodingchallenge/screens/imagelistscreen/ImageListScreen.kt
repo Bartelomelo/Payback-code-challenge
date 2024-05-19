@@ -2,6 +2,7 @@ package pl.bartelomelo.paybackcodingchallenge.screens.imagelistscreen
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,13 +32,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -43,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.R
@@ -50,7 +60,7 @@ import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.Hit
 
 @Composable
 fun ImageListScreen(
-    viewModel: ImageListViewModel = hiltViewModel()
+    navController: NavController
 ) {
     val scrollState = rememberScrollState()
     val lazyState = rememberLazyListState()
@@ -74,7 +84,10 @@ fun ImageListScreen(
                         .fillMaxWidth()
                         .height(800.dp)
                 ) {
-                    ImageListSection(listState = lazyState)
+                    ImageListSection(
+                        listState = lazyState,
+                        navController = navController
+                    )
                 }
                 Box(
                     modifier = Modifier
@@ -96,6 +109,7 @@ fun ImageListTopSection(
     viewModel: ImageListViewModel = hiltViewModel()
 ) {
     val query = viewModel.query
+    val active = viewModel.searchBarActive
     Row {
         val keyboardController = LocalSoftwareKeyboardController.current
         SearchBar(
@@ -104,6 +118,7 @@ fun ImageListTopSection(
             onQueryChange = { query.value = it },
             onSearch = {
                 viewModel.searchQuery(query.value)
+                active.value = false
                 keyboardController?.hide()
             },
             leadingIcon = {
@@ -123,8 +138,10 @@ fun ImageListTopSection(
                     }
                 }
             },
-            active = false,
-            onActiveChange = {}
+            active = active.value,
+            onActiveChange = {
+                active.value = it
+            }
         ) {}
     }
 }
@@ -132,7 +149,8 @@ fun ImageListTopSection(
 @Composable
 fun ImageListSection(
     viewModel: ImageListViewModel = hiltViewModel(),
-    listState: LazyListState
+    listState: LazyListState,
+    navController: NavController
 ) {
     val imageList = viewModel.imageList
     LazyColumn(
@@ -146,7 +164,11 @@ fun ImageListSection(
             imageList.value.hits.size / 2 + 1
         }
         items(imageListCount) {
-            ImageListRow(rowIndex = it, entries = imageList.value.hits)
+            ImageListRow(
+                rowIndex = it,
+                entries = imageList.value.hits,
+                navController = navController
+            )
         }
     }
 }
@@ -154,14 +176,19 @@ fun ImageListSection(
 @Composable
 fun ImageListEntry(
     hit: Hit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navController: NavController
 ) {
+    var showDialog by remember { mutableStateOf(false) }
     Box(
         contentAlignment = TopCenter,
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .aspectRatio(1f)
-            .background(MaterialTheme.colorScheme.secondary)
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable {
+                showDialog = showDialog.not()
+            }
     ) {
         Column {
             AsyncImage(
@@ -188,12 +215,22 @@ fun ImageListEntry(
             )
         }
     }
+    if (showDialog) {
+        ImageAlertDialog(
+            onDismissRequest = { showDialog = false },
+            onConfirmation = { navController.navigate("image_detail_screen") },
+            dialogTitle = "Do you want to see more details",
+            dialogText = "This action will take you to detail view.",
+            Icons.Default.Info
+        )
+    }
 }
 
 @Composable
 fun ImageListRow(
     rowIndex: Int,
-    entries: List<Hit>
+    entries: List<Hit>,
+    navController: NavController
 ) {
     Column {
         Row(
@@ -202,13 +239,15 @@ fun ImageListRow(
         ) {
             ImageListEntry(
                 hit = entries[rowIndex * 2],
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                navController = navController
             )
             Spacer(modifier = Modifier.width(16.dp))
             if (entries.size >= rowIndex * 2 + 2) {
                 ImageListEntry(
                     hit = entries[rowIndex * 2 + 1],
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    navController = navController
                 )
             } else {
                 Spacer(modifier = Modifier.weight(1f))
@@ -262,4 +301,46 @@ fun ImageListButtonsSection(
             }
         }
     }
+}
+
+@Composable
+fun ImageAlertDialog(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    dialogTitle: String,
+    dialogText: String,
+    icon: ImageVector
+) {
+    AlertDialog(
+        icon = {
+            Icon(icon, contentDescription = "Example Icon")
+        },
+        title = {
+            Text(text = dialogTitle)
+        },
+        text = {
+            Text(text = dialogText)
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Confirm")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text("Dismiss")
+            }
+        }
+    )
 }
