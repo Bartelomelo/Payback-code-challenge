@@ -1,35 +1,59 @@
 package pl.bartelomelo.paybackcodingchallenge.screens.imagelistscreen
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.R
 import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.Hit
 
 @Composable
 fun ImageListScreen(
+    viewModel: ImageListViewModel = hiltViewModel()
 ) {
+    val scrollState = rememberScrollState()
+    val lazyState = rememberLazyListState()
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -42,88 +66,166 @@ fun ImageListScreen(
         Box(
             modifier = Modifier
                 .weight(10f)
+                .verticalScroll(scrollState)
         ) {
-            ImageListSection()
-        }
-        Box(
-            modifier = Modifier
-                .weight(1f)
-        ) {
-            ImageListButtonsSection()
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(800.dp)
+                ) {
+                    ImageListSection(listState = lazyState)
+                }
+                Box(
+                    modifier = Modifier
+                        .height(50.dp)
+                ) {
+                    ImageListButtonsSection(
+                        scrollState = scrollState,
+                        listState = lazyState
+                    )
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageListTopSection(
     viewModel: ImageListViewModel = hiltViewModel()
 ) {
     val query = viewModel.query
     Row {
-        OutlinedTextField(
-            value = query.value,
-            onValueChange = { query.value = it },
-            shape = RoundedCornerShape(20.dp),
+        val keyboardController = LocalSoftwareKeyboardController.current
+        SearchBar(
+            modifier = Modifier.fillMaxWidth(),
+            query = query.value,
+            onQueryChange = { query.value = it },
+            onSearch = {
+                viewModel.searchQuery(query.value)
+                keyboardController?.hide()
+            },
             leadingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_search_24),
                     contentDescription = "search icon"
                 )
-            }
-        )
-        Button(onClick = {
-            viewModel.saveSearchQuery(query.value)
-            viewModel.resetPage()
-            viewModel.getImageList(query.value)
-        }) {
-            Text(text = "search")
-        }
+            },
+            trailingIcon = {
+                if (query.value.isNotEmpty()) {
+                    IconButton(onClick = { query.value = "" }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            contentDescription = "Clear search"
+                        )
+                    }
+                }
+            },
+            active = false,
+            onActiveChange = {}
+        ) {}
     }
 }
 
 @Composable
 fun ImageListSection(
-    viewModel: ImageListViewModel = hiltViewModel()
+    viewModel: ImageListViewModel = hiltViewModel(),
+    listState: LazyListState
 ) {
     val imageList = viewModel.imageList
-    LazyColumn {
-        items(imageList.value.hits.size) {
-            ImageListEntry(hit = imageList.value.hits[it])
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .padding(top = 16.dp, start = 3.dp, end = 3.dp)
+    ) {
+        val imageListCount = if (imageList.value.hits.size % 2 == 0) {
+            imageList.value.hits.size / 2
+        } else {
+            imageList.value.hits.size / 2 + 1
+        }
+        items(imageListCount) {
+            ImageListRow(rowIndex = it, entries = imageList.value.hits)
         }
     }
 }
 
 @Composable
-fun ImageListEntry(hit: Hit) {
+fun ImageListEntry(
+    hit: Hit,
+    modifier: Modifier = Modifier
+) {
     Box(
-        contentAlignment = Center,
-        modifier = Modifier
-            .shadow(5.dp, RoundedCornerShape(10.dp))
-            .clip(RoundedCornerShape(10.dp))
+        contentAlignment = TopCenter,
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
             .aspectRatio(1f)
+            .background(MaterialTheme.colorScheme.secondary)
     ) {
         Column {
+            AsyncImage(
+                model = hit.webformatURL,
+                contentDescription = hit.tags,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.7f)
+            )
             Text(
                 text = hit.user,
-                fontSize = 20.sp,
+                fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = modifier.fillMaxWidth(),
+                color = Color.Gray
             )
             Text(
                 text = hit.tags,
-                fontSize = 20.sp,
+                fontSize = 12.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = modifier.fillMaxWidth(),
+                color = Color.White
             )
         }
+    }
+}
+
+@Composable
+fun ImageListRow(
+    rowIndex: Int,
+    entries: List<Hit>
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            ImageListEntry(
+                hit = entries[rowIndex * 2],
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            if (entries.size >= rowIndex * 2 + 2) {
+                ImageListEntry(
+                    hit = entries[rowIndex * 2 + 1],
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
 @Composable
 fun ImageListButtonsSection(
-    viewModel: ImageListViewModel = hiltViewModel()
+    viewModel: ImageListViewModel = hiltViewModel(),
+    scrollState: ScrollState,
+    listState: LazyListState
 ) {
     val searchedQuery = viewModel.searchedQuery
+    val scope = rememberCoroutineScope()
     Row {
         Box(
             modifier = Modifier
@@ -132,8 +234,11 @@ fun ImageListButtonsSection(
         ) {
             Button(
                 onClick = {
-                    viewModel.decrementPage()
-                    viewModel.getImageList(searchedQuery.value)
+                    scope.launch{
+                        scrollState.animateScrollTo(0)
+                        listState.animateScrollToItem(0)
+                    }
+                    viewModel.loadPreviousPage(searchedQuery.value)
                 },
                 colors = ButtonDefaults.buttonColors()
             ) {
@@ -146,6 +251,10 @@ fun ImageListButtonsSection(
             contentAlignment = Alignment.CenterEnd
         ) {
             Button(onClick = {
+                scope.launch{
+                    scrollState.animateScrollTo(0)
+                    listState.animateScrollToItem(0)
+                }
                 viewModel.incrementPage()
                 viewModel.getImageList(searchedQuery.value)
             }) {

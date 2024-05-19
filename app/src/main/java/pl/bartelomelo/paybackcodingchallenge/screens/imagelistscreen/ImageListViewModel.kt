@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.data.remote.repository.ImageRepository
 import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.SearchResponse
@@ -17,6 +19,8 @@ class ImageListViewModel @Inject constructor(
 ): ViewModel() {
     val imageList = mutableStateOf(SearchResponse(hits = listOf(), total = 0, totalHits = 0))
     private var page = 1
+    private val _myState = MutableStateFlow(false)
+    val myState: StateFlow<Boolean> = _myState
     var query = mutableStateOf("flowers")
     var searchedQuery = mutableStateOf("flowers")
 
@@ -42,16 +46,30 @@ class ImageListViewModel @Inject constructor(
         }
     }
 
-    fun resetPage() {
+    private fun resetPage() {
         page = 1
     }
     fun incrementPage() {
         page++
     }
-    fun decrementPage() {
+    private fun decrementPage() {
         if (page != 1) page--
     }
-    fun saveSearchQuery(query: String) {
+    private fun saveSearchQuery(query: String) {
         searchedQuery.value = query
+    }
+    fun loadPreviousPage(query: String) {
+        if (page != 1) {
+            decrementPage()
+            getImageList(query)
+        }
+    }
+    fun searchQuery(query: String) {
+        saveSearchQuery(query)
+        resetPage()
+        getImageList(query)
+    }
+    fun updateScrollToTop(value: Boolean) {
+        _myState.value = value
     }
 }
