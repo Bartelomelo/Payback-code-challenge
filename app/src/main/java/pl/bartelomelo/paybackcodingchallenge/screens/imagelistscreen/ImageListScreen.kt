@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,14 +47,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.R
 import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.Hit
@@ -111,7 +111,6 @@ fun ImageListTopSection(
     val query = viewModel.query
     val active = viewModel.searchBarActive
     Row {
-        val keyboardController = LocalSoftwareKeyboardController.current
         SearchBar(
             modifier = Modifier.fillMaxWidth(),
             query = query.value,
@@ -119,7 +118,6 @@ fun ImageListTopSection(
             onSearch = {
                 viewModel.searchQuery(query.value)
                 active.value = false
-                keyboardController?.hide()
             },
             leadingIcon = {
                 Icon(
@@ -191,13 +189,20 @@ fun ImageListEntry(
             }
     ) {
         Column {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = hit.webformatURL,
                 contentDescription = hit.tags,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.7f)
+                    .fillMaxHeight(0.7f),
+                loading = {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             )
             Text(
                 text = hit.user,
@@ -218,7 +223,7 @@ fun ImageListEntry(
     if (showDialog) {
         ImageAlertDialog(
             onDismissRequest = { showDialog = false },
-            onConfirmation = { navController.navigate("image_detail_screen") },
+            onConfirmation = { navController.navigate("image_detail_screen/${hit.id}") },
             dialogTitle = "Do you want to see more details",
             dialogText = "This action will take you to detail view.",
             Icons.Default.Info
@@ -273,7 +278,7 @@ fun ImageListButtonsSection(
         ) {
             Button(
                 onClick = {
-                    scope.launch{
+                    scope.launch {
                         scrollState.animateScrollTo(0)
                         listState.animateScrollToItem(0)
                     }
@@ -290,7 +295,7 @@ fun ImageListButtonsSection(
             contentAlignment = Alignment.CenterEnd
         ) {
             Button(onClick = {
-                scope.launch{
+                scope.launch {
                     scrollState.animateScrollTo(0)
                     listState.animateScrollToItem(0)
                 }
