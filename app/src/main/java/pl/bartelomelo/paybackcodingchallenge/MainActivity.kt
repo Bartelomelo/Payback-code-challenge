@@ -13,8 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
-import pl.bartelomelo.paybackcodingchallenge.screens.imagedetailscreen.ImageDetailScreen
-import pl.bartelomelo.paybackcodingchallenge.screens.imagelistscreen.ImageListScreen
+import pl.bartelomelo.paybackcodingchallenge.feature_image.presentation.imagedetailscreen.ImageDetailScreen
+import pl.bartelomelo.paybackcodingchallenge.feature_image.presentation.imagelistscreen.ImageListScreen
 import pl.bartelomelo.paybackcodingchallenge.ui.theme.PaybackCodingChallengeTheme
 
 @AndroidEntryPoint
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             val id = it.arguments?.getString("id")!!
                             //about image composable here.
-                            ImageDetailScreen(navController = navController, imageId = id)
+                            ImageDetailScreen(navController = navController, imageId = id.toInt())
                         }
                     }
                 }

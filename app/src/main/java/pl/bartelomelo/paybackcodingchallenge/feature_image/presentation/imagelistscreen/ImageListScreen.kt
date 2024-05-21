@@ -1,4 +1,4 @@
-package pl.bartelomelo.paybackcodingchallenge.screens.imagelistscreen
+package pl.bartelomelo.paybackcodingchallenge.feature_image.presentation.imagelistscreen
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -56,7 +56,7 @@ import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.R
-import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.Hit
+import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
 
 @Composable
 fun ImageListScreen(
@@ -299,8 +299,7 @@ fun ImageListButtonsSection(
                     scrollState.animateScrollTo(0)
                     listState.animateScrollToItem(0)
                 }
-                viewModel.incrementPage()
-                viewModel.getImageList(searchedQuery.value)
+                viewModel.loadNextPage(searchedQuery.value)
             }) {
                 Text(text = ">>")
             }

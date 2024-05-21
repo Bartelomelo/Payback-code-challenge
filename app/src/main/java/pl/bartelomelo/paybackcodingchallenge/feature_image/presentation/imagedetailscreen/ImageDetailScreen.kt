@@ -1,4 +1,4 @@
-package pl.bartelomelo.paybackcodingchallenge.screens.imagedetailscreen
+package pl.bartelomelo.paybackcodingchallenge.feature_image.presentation.imagedetailscreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,19 +37,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
+import kotlinx.coroutines.flow.Flow
 import pl.bartelomelo.paybackcodingchallenge.R
-import pl.bartelomelo.paybackcodingchallenge.data.remote.responses.SearchResponse
+import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
 import pl.bartelomelo.paybackcodingchallenge.util.Resource
 
 @Composable
 fun ImageDetailScreen(
     viewModel: ImageDetailViewModel = hiltViewModel(),
-    imageId: String,
+    imageId: Int,
     navController: NavController
 ) {
-    val imageInfo = produceState<Resource<SearchResponse>>(initialValue = Resource.Loading()) {
-        value = viewModel.getImageInfo(imageId)
-    }.value
+    val imageInfo = viewModel.getImageDetail(imageId).collectAsState(initial = null)
     Column {
         ImageDetailTopSection(navController = navController)
         Box(
@@ -57,7 +57,7 @@ fun ImageDetailScreen(
             contentAlignment = Alignment.Center
         ) {
             ImageDetailStateWrapper(
-                imageInfo = imageInfo,
+                imageInfo = imageInfo.value,
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.75f)
@@ -118,7 +118,7 @@ fun ImageDetailTopSection(
 
 @Composable
 fun ImageDetailStateWrapper(
-    imageInfo: Resource<SearchResponse>,
+    imageInfo: Flow<Hit>,
     modifier: Modifier = Modifier,
     loadingModifier: Modifier = Modifier
 ) {
@@ -149,10 +149,10 @@ fun ImageDetailStateWrapper(
 
 @Composable
 fun ImageDetailSection(
-    imageInfo: Resource<SearchResponse>,
+    imageInfo: Resource<Hit>,
     modifier: Modifier = Modifier
 ) {
-    val hit = imageInfo.data!!.hits[0]
+    val hit = imageInfo.data!!
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
