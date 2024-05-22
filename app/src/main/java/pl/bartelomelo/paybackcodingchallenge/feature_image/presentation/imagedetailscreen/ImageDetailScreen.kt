@@ -32,12 +32,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import pl.bartelomelo.paybackcodingchallenge.R
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
 
@@ -138,8 +140,12 @@ fun ImageDetailSection(
             modifier = Modifier
                 .weight(imageWeight)
         ) {
+
             SubcomposeAsyncImage(
-                model = imageInfo.largeImageURL,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageInfo.largeImageURL)
+                    .error(R.drawable.noimage)
+                    .build(),
                 contentDescription = "image",
                 loading = {
                     CircularProgressIndicator(
@@ -153,6 +159,9 @@ fun ImageDetailSection(
                             ),
                         color = MaterialTheme.colorScheme.primary
                     )
+                },
+                onError = {
+
                 }
             )
         }
