@@ -74,7 +74,7 @@ fun ImageDetailScreen(
                         )
                         .shadow(10.dp, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(MaterialTheme.colorScheme.secondary)
                         .padding(16.dp)
                         .align(Alignment.TopCenter)
                 )
@@ -102,7 +102,7 @@ fun ImageDetailTopSection(
         Icon(
             imageVector = Icons.Default.ArrowBack,
             contentDescription = null,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier
                 .size(36.dp)
                 .offset(16.dp, 16.dp)
@@ -218,20 +218,20 @@ fun ImageDetailsRow(
             Icon(
                 painter = painterResource(id = iconDrawable),
                 contentDescription = "Painter resource",
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.tertiary
             )
         } else {
             Icon(
                 imageVector = iconVector!!,
                 contentDescription = "ImageVector",
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.tertiary
             )
         }
         Text(
             modifier = Modifier
                 .fillMaxWidth(),
             text = info,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.tertiary,
             textAlign = TextAlign.End
         )
     }

@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -108,13 +108,17 @@ fun ImageListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageListTopSection(
-    viewModel: ImageListViewModel = hiltViewModel()
+    viewModel: ImageListViewModel = hiltViewModel(),
+
 ) {
     val query = viewModel.query
     val active = viewModel.searchBarActive
     Row {
         SearchBar(
             modifier = Modifier.fillMaxWidth(),
+            colors = SearchBarDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.tertiary,
+            ),
             query = query.value,
             onQueryChange = { query.value = it },
             onSearch = {
@@ -185,7 +189,7 @@ fun ImageListEntry(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .aspectRatio(1f)
-            .background(MaterialTheme.colorScheme.primary)
+            .background(MaterialTheme.colorScheme.secondary)
             .clickable {
                 showDialog = showDialog.not()
             }
@@ -205,7 +209,7 @@ fun ImageListEntry(
                     CircularProgressIndicator(
                         modifier = Modifier
                             .align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             )
@@ -214,14 +218,14 @@ fun ImageListEntry(
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 modifier = modifier.fillMaxWidth(),
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.tertiary
             )
             Text(
                 text = hit.tags,
-                fontSize = 12.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center,
                 modifier = modifier.fillMaxWidth(),
-                color = Color.White
+                color = MaterialTheme.colorScheme.tertiary
             )
         }
     }
@@ -291,7 +295,10 @@ fun ImageListButtonsSection(
                 },
                 colors = ButtonDefaults.buttonColors()
             ) {
-                Text(text = "<<")
+                Text(
+                    text = "<<",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
             }
         }
         Box(
@@ -306,7 +313,10 @@ fun ImageListButtonsSection(
                 }
                 viewModel.loadNextPage(searchedQuery.value)
             }) {
-                Text(text = ">>")
+                Text(
+                    text = ">>",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
             }
         }
     }
@@ -322,7 +332,7 @@ fun ImageAlertDialog(
 ) {
     AlertDialog(
         icon = {
-            Icon(icon, contentDescription = "Example Icon")
+            Icon(icon, contentDescription = "Alert icon")
         },
         title = {
             Text(text = dialogTitle)
@@ -339,7 +349,10 @@ fun ImageAlertDialog(
                     onConfirmation()
                 }
             ) {
-                Text("Confirm")
+                Text(
+                    "Confirm",
+                    color = MaterialTheme.colorScheme.tertiary
+                    )
             }
         },
         dismissButton = {
@@ -348,8 +361,15 @@ fun ImageAlertDialog(
                     onDismissRequest()
                 }
             ) {
-                Text("Dismiss")
+                Text(
+                    "Dismiss",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.primary,
+        iconContentColor = MaterialTheme.colorScheme.tertiary,
+        titleContentColor = MaterialTheme.colorScheme.tertiary,
+        textContentColor = MaterialTheme.colorScheme.tertiary,
     )
 }

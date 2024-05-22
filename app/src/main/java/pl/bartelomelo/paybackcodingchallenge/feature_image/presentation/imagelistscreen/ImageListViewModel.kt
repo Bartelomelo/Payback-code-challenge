@@ -1,11 +1,9 @@
 package pl.bartelomelo.paybackcodingchallenge.feature_image.presentation.imagelistscreen
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -20,8 +18,6 @@ class ImageListViewModel @Inject constructor(
 ): ViewModel() {
     val imageList = mutableStateOf(SearchResponse(hits = listOf()))
     private var page = 1
-    private var maxPage = 10
-    private val _myState = MutableStateFlow(false)
     var searchBarActive = mutableStateOf(false)
     var query = mutableStateOf("flowers")
     var searchedQuery = mutableStateOf("flowers")
@@ -30,23 +26,19 @@ class ImageListViewModel @Inject constructor(
         getImageList(query.value)
     }
 
-    fun getImageList(query: String) {
+    private fun getImageList(query: String) {
         viewModelScope.launch {
             repository.getImageList(query, page)
                 .onEach { result ->
                     when (result) {
                         is Resource.Success -> {
                             imageList.value = result.data ?: SearchResponse(emptyList())
-                            Log.d("current page", page.toString())
-                            Log.d("list", imageList.value.hits.toString())
                         }
                         is Resource.Error -> {
                             imageList.value = result.data ?: SearchResponse(emptyList())
-                            Log.e("error VM", result.message.toString())
                         }
                         is Resource.Loading -> {
                             imageList.value = result.data ?: SearchResponse(emptyList())
-                            Log.d("current page", page.toString())
                         }
                     }
                 }.launchIn(this)

@@ -16,17 +16,17 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    //background = ,
-    primary = Pink40,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    background = DarkOliveBackground,
+    primary = GreenPrimaryDark,
+    secondary = MossDarkCards,
+    tertiary = DarkLetters
 )
 
 private val LightColorScheme = lightColorScheme(
-    background = PinkLightBackground,
-    primary = PinkPrimary,
-    secondary = PinkLightCards,
-    tertiary = Pink40
+    background = LightOliveBackground,
+    primary = GreenPrimaryLight,
+    secondary = GreenLightCards,
+    tertiary = LightLetters
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -43,7 +43,7 @@ private val LightColorScheme = lightColorScheme(
 fun PaybackCodingChallengeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

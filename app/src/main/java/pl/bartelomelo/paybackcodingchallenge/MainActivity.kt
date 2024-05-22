@@ -23,7 +23,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PaybackCodingChallengeTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -43,7 +42,6 @@ class MainActivity : ComponentActivity() {
                             )
                         ) {
                             val id = it.arguments?.getString("id")!!
-                            //about image composable here.
                             ImageDetailScreen(navController = navController, imageId = id.toInt())
                         }
                     }
