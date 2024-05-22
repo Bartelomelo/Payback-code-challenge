@@ -40,7 +40,8 @@ class ImageRepositoryImpl(
         emit(Resource.Success(SearchResponse(newImageList)))
     }
 
-    override fun getImageDetail(id: Int): Flow<Hit> {
-        return dao.getImageDetail(id)
+    override suspend fun getImageDetail(id: Int): Hit? {
+       return dao.getImageDetail(id)
     }
+
 }

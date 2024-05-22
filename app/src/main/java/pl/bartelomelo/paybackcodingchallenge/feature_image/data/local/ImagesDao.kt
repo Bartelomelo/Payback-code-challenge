@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
 import pl.bartelomelo.paybackcodingchallenge.feature_image.data.local.entity.ImageEntity
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
 
@@ -20,5 +19,5 @@ interface ImagesDao {
     suspend fun getImagesList(query: String): List<Hit>
 
     @Query ("SELECT * FROM imageentity WHERE id = :id")
-    fun getImageDetail(id: Int): Flow<Hit>
+    suspend fun getImageDetail(id: Int): Hit?
 }

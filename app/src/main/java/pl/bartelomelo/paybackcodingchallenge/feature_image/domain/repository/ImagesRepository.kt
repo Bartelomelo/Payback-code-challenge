@@ -8,5 +8,5 @@ import pl.bartelomelo.paybackcodingchallenge.util.Resource
 
 interface ImagesRepository {
     fun getImageList(query: String, page: Int): Flow<Resource<SearchResponse>>
-    fun getImageDetail(id: Int): Flow<Hit>
+    suspend fun getImageDetail(id: Int): Hit?
 }

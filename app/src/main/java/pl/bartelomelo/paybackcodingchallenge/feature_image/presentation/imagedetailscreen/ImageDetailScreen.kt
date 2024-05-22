@@ -22,8 +22,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,10 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
-import kotlinx.coroutines.flow.Flow
 import pl.bartelomelo.paybackcodingchallenge.R
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
-import pl.bartelomelo.paybackcodingchallenge.util.Resource
 
 @Composable
 fun ImageDetailScreen(
@@ -48,7 +47,10 @@ fun ImageDetailScreen(
     imageId: Int,
     navController: NavController
 ) {
-    val imageInfo = viewModel.getImageDetail(imageId).collectAsState(initial = null)
+    LaunchedEffect(key1 = null) {
+        viewModel.getImageDetail(id = imageId)
+    }
+    val imageInfo by viewModel.imageDetail.collectAsState()
     Column {
         ImageDetailTopSection(navController = navController)
         Box(
@@ -56,32 +58,25 @@ fun ImageDetailScreen(
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            ImageDetailStateWrapper(
-                imageInfo = imageInfo.value,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.75f)
-                    .padding(
-                        top = 25.dp,
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 16.dp
-                    )
-                    .shadow(10.dp, RoundedCornerShape(10.dp))
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp)
-                    .align(Alignment.TopCenter),
-                loadingModifier = Modifier
-                    .size(100.dp)
-                    .align(Alignment.Center)
-                    .padding(
-                        top = 25.dp,
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 16.dp
-                    )
-            )
+            imageInfo?.let {
+                ImageDetailStateWrapper(
+                    imageInfo = imageInfo!!,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.75f)
+                        .padding(
+                            top = 25.dp,
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp
+                        )
+                        .shadow(10.dp, RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(16.dp)
+                        .align(Alignment.TopCenter)
+                )
+            }
         }
     }
 }
@@ -118,65 +113,47 @@ fun ImageDetailTopSection(
 
 @Composable
 fun ImageDetailStateWrapper(
-    imageInfo: Flow<Hit>,
+    imageInfo: Hit,
     modifier: Modifier = Modifier,
-    loadingModifier: Modifier = Modifier
 ) {
-    when (imageInfo) {
-        is Resource.Success -> {
-            ImageDetailSection(
-                imageInfo = imageInfo,
-                modifier = modifier
-            )
-        }
-
-        is Resource.Error -> {
-            Text(
-                text = imageInfo.message!!,
-                color = Color.Red,
-                modifier = modifier
-            )
-        }
-
-        is Resource.Loading -> {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                modifier = loadingModifier
-            )
-        }
-    }
+    ImageDetailSection(
+        imageInfo = imageInfo,
+        modifier = modifier
+    )
 }
+
 
 @Composable
 fun ImageDetailSection(
-    imageInfo: Resource<Hit>,
+    imageInfo: Hit,
     modifier: Modifier = Modifier
 ) {
-    val hit = imageInfo.data!!
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxSize()
     ) {
-        val imageWeight = if (hit.imageHeight > hit.imageWidth) 1.8f else 1.2f
+        val imageWeight = if (imageInfo.imageHeight > imageInfo.imageWidth) 1.8f else 1.2f
         Box(
             modifier = Modifier
                 .weight(imageWeight)
         ) {
             SubcomposeAsyncImage(
-                model = hit.largeImageURL,
+                model = imageInfo.largeImageURL,
                 contentDescription = "image",
-                loading = { CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(
-                            top = 100.dp,
-                            start = 16.dp,
-                            end = 16.dp,
-                            bottom = 16.dp
-                        ),
-                    color = MaterialTheme.colorScheme.primary
-                ) }
+                loading = {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(
+                                top = 100.dp,
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 16.dp
+                            ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             )
         }
         Box(
@@ -186,27 +163,27 @@ fun ImageDetailSection(
         ) {
             Column {
                 ImageDetailsRow(
-                    info = hit.user,
+                    info = imageInfo.user,
                     iconVector = Icons.Default.AccountCircle,
                     iconDrawable = null
                 )
                 ImageDetailsRow(
-                    info = hit.tags,
+                    info = imageInfo.tags,
                     iconVector = null,
                     iconDrawable = R.drawable.baseline_tag_24
                 )
                 ImageDetailsRow(
-                    info = hit.likes.toString(),
+                    info = imageInfo.likes.toString(),
                     iconVector = Icons.Default.Favorite,
                     iconDrawable = null
                 )
                 ImageDetailsRow(
-                    info = hit.comments.toString(),
+                    info = imageInfo.comments.toString(),
                     iconVector = null,
                     iconDrawable = R.drawable.baseline_comment_24
                 )
                 ImageDetailsRow(
-                    info = hit.downloads.toString(),
+                    info = imageInfo.downloads.toString(),
                     iconVector = null,
                     iconDrawable = R.drawable.baseline_file_download_done_24
                 )
