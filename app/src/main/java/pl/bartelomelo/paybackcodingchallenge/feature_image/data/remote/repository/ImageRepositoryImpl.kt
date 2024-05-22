@@ -7,6 +7,7 @@ import pl.bartelomelo.paybackcodingchallenge.feature_image.data.remote.ImagesApi
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.SearchResponse
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.repository.ImagesRepository
+import pl.bartelomelo.paybackcodingchallenge.util.Constants
 import pl.bartelomelo.paybackcodingchallenge.util.Resource
 import retrofit2.HttpException
 import java.io.IOException
@@ -21,7 +22,7 @@ class ImageRepositoryImpl(
         emit(Resource.Loading(data = SearchResponse(cachedImageList)))
 
         try {
-            val remoteImageList = api.getImagesList(query, page)
+            val remoteImageList = api.getImagesList(key = Constants.KEY, query = query, page = page)
             remoteImageList.hits.map { it.query = query}
             dao.deleteImages(remoteImageList.hits.map { it.query })
             dao.insertImages(remoteImageList.hits.map { it.toHitEntity() })

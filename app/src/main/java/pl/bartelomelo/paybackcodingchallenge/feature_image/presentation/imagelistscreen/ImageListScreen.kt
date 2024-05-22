@@ -31,11 +31,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,49 +60,69 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import pl.bartelomelo.paybackcodingchallenge.R
 import pl.bartelomelo.paybackcodingchallenge.feature_image.domain.model.Hit
 
 @Composable
 fun ImageListScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: ImageListViewModel = hiltViewModel()
 ) {
     val scrollState = rememberScrollState()
     val lazyState = rememberLazyListState()
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-        ) {
-            ImageListTopSection()
-        }
-        Box(
-            modifier = Modifier
-                .weight(10f)
-                .verticalScroll(scrollState)
-        ) {
-            Column {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(800.dp)
-                ) {
-                    ImageListSection(
-                        listState = lazyState,
-                        navController = navController
-                    )
+    val snackBarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(key1 = true) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is ImageListViewModel.UIEvent.ShowSnackbar -> {
+                    snackBarHostState.showSnackbar(message = event.message)
                 }
-                Box(
-                    modifier = Modifier
-                        .height(50.dp)
-                ) {
-                    ImageListButtonsSection(
-                        scrollState = scrollState,
-                        listState = lazyState
-                    )
+            }
+        }
+    }
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState)
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                ImageListTopSection()
+            }
+            Box(
+                modifier = Modifier
+                    .weight(10f)
+                    .verticalScroll(scrollState)
+            ) {
+                Column {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(800.dp)
+                    ) {
+                        ImageListSection(
+                            listState = lazyState,
+                            navController = navController
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .height(50.dp)
+                    ) {
+                        ImageListButtonsSection(
+                            scrollState = scrollState,
+                            listState = lazyState
+                        )
+                    }
                 }
             }
         }
@@ -110,7 +134,7 @@ fun ImageListScreen(
 fun ImageListTopSection(
     viewModel: ImageListViewModel = hiltViewModel(),
 
-) {
+    ) {
     val query = viewModel.query
     val active = viewModel.searchBarActive
     Row {
@@ -175,6 +199,7 @@ fun ImageListSection(
             )
         }
     }
+
 }
 
 @Composable
@@ -352,7 +377,7 @@ fun ImageAlertDialog(
                 Text(
                     "Confirm",
                     color = MaterialTheme.colorScheme.tertiary
-                    )
+                )
             }
         },
         dismissButton = {
